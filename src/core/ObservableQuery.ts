@@ -126,18 +126,23 @@ export class ObservableQuery<
     });
   }
 
-  public getCurrentResult(saveAsLastResult = true): ApolloQueryResult<TData> {
+  public getNetworkStatus() {
     const { lastResult } = this;
-
-    const networkStatus =
-      this.queryInfo.networkStatus ||
+    return this.queryInfo.networkStatus ||
       (lastResult && lastResult.networkStatus) ||
       NetworkStatus.ready;
+  }
 
+  public getLoading(networkStatus = this.getNetworkStatus()) {
+    return isNetworkRequestInFlight(networkStatus);
+  }
+
+  public getCurrentResult(saveAsLastResult = true): ApolloQueryResult<TData> {
+    const networkStatus = this.getNetworkStatus();
     const result: ApolloQueryResult<TData> = {
-      ...lastResult,
-      loading: isNetworkRequestInFlight(networkStatus),
+      ...this.lastResult,
       networkStatus,
+      loading: this.getLoading(networkStatus),
     };
 
     if (this.isTornDown) {
